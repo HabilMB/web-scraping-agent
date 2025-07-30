@@ -1,0 +1,13 @@
+langchain
+langchain-community
+langchain-groq
+ollama
+tavily-python
+requests
+beautifulsoup4
+python-dotenv
+bleach
+# pandas # Uncomment if you plan to use pandas 
+fastapi==0.103.2
+uvicorn[standard]==0.23.2
+playwright==1.45.0 # Or the latest stable version 
