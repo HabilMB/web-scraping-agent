@@ -1,48 +1,61 @@
-# Web Scraping Agent
+# AI Web Scraping Agent
 
-This project is an AI-powered web scraping agent that can understand user queries, search the web, analyze webpages, generate and execute scraping logic, process the extracted data, and summarize the findings.
+This project is a full-stack AI-powered web scraping agent. It features a React frontend and a FastAPI backend. The agent can understand user queries, search the web, analyze webpages, extract structured data, and provide a summarized answer.
 
 ## Project Flow
 
-1.  **[User Query]**: User provides a query via a Command Line Interface (CLI) for information to be scraped.
-2.  **[LLM Agent]**: The core agent, built with Langchain and using a local Ollama model, orchestrates the workflow.
-3.  **[Web Search]**: The agent uses Tavily Search API to find relevant pages based on the user query. The LLM helps formulate effective search terms.
-4.  **[Analyze Webpages]**: Potentially relevant webpages are fetched (using libraries like `requests`) and their HTML is parsed (using `BeautifulSoup4`). The LLM directly analyzes the content to determine suitability and extract specific data in a structured JSON format.
-5.  **[Process Data]**: The extracted raw data is cleaned, structured (e.g., using Pandas), and validated. The LLM can assist in this stage.
-6.  **[Summarize Findings]**: The LLM generates a summary of the processed data and presents it to the user.
+1.  **[User Query]**: A user enters a query into the React-based web interface.
+2.  **[Frontend to Backend]**: The frontend sends the query to the FastAPI backend.
+3.  **[Backend API]**: The backend serves as the interface to the core LLM agent.
+4.  **[LLM Agent]**: The agent, built with Langchain, receives the query and orchestrates the workflow.
+5.  **[Web Search]**: The agent uses the Tavily Search API to find relevant webpages. The LLM formulates an effective search query.
+6.  **[Analyze & Extract]**: Webpages are fetched (using `requests`, `BeautifulSoup4`, and potentially `Playwright` for dynamic sites). The LLM directly analyzes the content to determine relevance and extract the requested information into a structured JSON format.
+7.  **[Summarize Findings]**: The LLM generates a final, human-readable summary based on all the extracted data.
+8.  **[Stream to Frontend]**: The backend streams the entire process (search, analysis, final summary) back to the frontend in real-time, providing step-by-step feedback to the user.
 
 ## Tech Stack
 
-*   **Programming Language**: Python 3.12.7
-*   **LLM**: Ollama (running `gemma3:4b` local model)
-*   **Core Framework**: Langchain
+*   **Frontend**:
+    *   **Framework**: React
+    *   **Styling**: Standard CSS
+*   **Backend**:
+    *   **Framework**: FastAPI
+    *   **Programming Language**: Python 3.12
+    *   **LLM**: Groq (using `moonshotai/kimi-k2-instruct` model via API)
 *   **Key Python Libraries**:
     *   `langchain`: For building the agent and orchestrating LLM calls.
-    *   `langchain-community`: For Ollama integration.
-    *   `ollama`: Python client for Ollama if direct interaction is needed.
+    *   `langchain-groq`: For Groq API integration.
+    *   `fastapi`: High-performance web framework for the backend API.
+    *   `uvicorn`: ASGI server for FastAPI.
     *   `tavily-python`: For performing web searches.
-    *   `requests` or `httpx`: For making HTTP requests to fetch webpage content.
-    *   `beautifulsoup4`: For parsing HTML and XML.
-    *   `pandas` (optional, for data processing): For handling and structuring tabular data.
-    *   `python-dotenv` (recommended): For managing environment variables (API keys, configurations).
+    *   `requests`: For making HTTP requests.
+    *   `beautifulsoup4`: For parsing HTML.
+    *   `playwright`: For advanced browser automation and scraping dynamic websites.
+    *   `python-dotenv`: For managing environment variables.
+    *   `bleach`: For sanitizing HTML content.
 
 ## Project Structure
 
 ```
 web-scraping-agent/
-├── main.py                 # Main script to run the agent (CLI entry point)
-├── agent/                  # Core LLM agent logic, orchestration
-│   ├── __init__.py
-│   └── llm_agent.py        # Main agent class/logic
-├── tools/                  # Reusable tools (search, web fetching, parsing)
-│   ├── __init__.py
-│   └── web_tools.py        # Functions for web interaction (fetching, parsing)
-├── prompts/                # Stores prompt templates for the LLM
-│   ├── __init__.py
-│   └── general_prompts.py  # General purpose prompts
-│   └── scraping_prompts.py # Prompts specific to web analysis and data extraction
-├── data/                   # For storing scraped data, temporary files, vectorstores (if used)
+├── backend/
+│   ├── agent/              # Core LLM agent logic
+│   │   └── llm_agent.py
+│   ├── prompts/            # LLM prompt templates
+│   │   ├── general_prompts.py
+│   │   └── scraping_prompts.py
+│   ├── tools/              # Reusable tools (web fetching, parsing)
+│   │   └── web_tools.py
+│   └── main.py             # FastAPI application entry point
+├── frontend/
+│   ├── src/
+│   │   ├── App.js          # Main React component
+│   │   └── index.js        # React entry point
+│   ├── public/
+│   │   └── index.html      # Main HTML file
+│   └── package.json        # Frontend dependencies and scripts
+├── main.py                 # Main script to run the application
 ├── requirements.txt        # Python package dependencies
-├── .env_example            # Example environment file for API keys and secrets
-└── DEVELOPMENT_INSTRUCTIONS.md # Step-by-step guide for developing this project
+├── .env_example            # Example environment file for API keys
+└── README.md               # This file
 ```

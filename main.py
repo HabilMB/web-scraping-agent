@@ -1,3 +1,5 @@
+# TERMINAL ONLY
+
 # Main script to run the web scraping agent
 from agent.llm_agent import LLMAgent
 import argparse
