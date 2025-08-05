@@ -1,7 +1,7 @@
 # backend/main.py
 import asyncio # Needed for running synchronous functions in an async context
 import os
-from dotenv import load_dotenv # New: For loading environment variables
+from dotenv import load_dotenv, find_dotenv # New: For loading environment variables
 import bleach
 
 from fastapi import FastAPI
@@ -15,8 +15,8 @@ from backend.agent.llm_agent import LLMAgent
 from backend.tools.web_tools import fetch_and_parse_webpage
 from backend.prompts.general_prompts import FINAL_SUMMARY_PROMPT
 
-# Load environment variables from .env.backend
-load_dotenv(dotenv_path='../.env.backend') # Adjust path if .env.backend is not in parent directory
+# Load environment variables from .env file
+load_dotenv(find_dotenv())
 
 app = FastAPI()
 

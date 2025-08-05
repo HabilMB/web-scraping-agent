@@ -7,7 +7,6 @@ from langchain import PromptTemplate
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
-from dotenv import load_dotenv
 import os
 import json
 import re
@@ -17,8 +16,6 @@ import asyncio # Import asyncio for async operations
 from backend.tools.web_tools import fetch_webpage, fetch_and_parse_webpage
 from backend.prompts.scraping_prompts import SCRAPING_ANALYSIS_PROMPT
 from backend.prompts.general_prompts import FINAL_SUMMARY_PROMPT
-
-load_dotenv()
 
 class LLMAgent:
     def __init__(self):
