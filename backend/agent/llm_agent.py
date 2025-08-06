@@ -13,9 +13,9 @@ import re
 import ast # Import the ast module
 import asyncio # Import asyncio for async operations
 
-from backend.tools.web_tools import fetch_webpage, fetch_and_parse_webpage
-from backend.prompts.scraping_prompts import SCRAPING_ANALYSIS_PROMPT
-from backend.prompts.general_prompts import FINAL_SUMMARY_PROMPT
+from tools.web_tools import fetch_webpage, fetch_and_parse_webpage
+from prompts.scraping_prompts import SCRAPING_ANALYSIS_PROMPT
+from prompts.general_prompts import FINAL_SUMMARY_PROMPT
 
 class LLMAgent:
     def __init__(self):

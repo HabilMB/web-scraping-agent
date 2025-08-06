@@ -11,9 +11,9 @@ from fastapi.responses import StreamingResponse
 import json
 
 # Adjust these imports based on your actual file structure after moving:
-from backend.agent.llm_agent import LLMAgent
-from backend.tools.web_tools import fetch_and_parse_webpage
-from backend.prompts.general_prompts import FINAL_SUMMARY_PROMPT
+from agent.llm_agent import LLMAgent
+from tools.web_tools import fetch_and_parse_webpage
+from prompts.general_prompts import FINAL_SUMMARY_PROMPT
 
 # Load environment variables from .env file
 load_dotenv(find_dotenv())
