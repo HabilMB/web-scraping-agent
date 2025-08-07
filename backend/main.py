@@ -25,6 +25,7 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:3000", # Allow your React/frontend dev server
+    "https://web-scraping-agent.vercel.app", # Allow your deployed frontend
 ]
 
 app.add_middleware(
