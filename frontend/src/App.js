@@ -8,7 +8,8 @@ function App() {
   const [error, setError] = useState('');
   const [progressSteps, setProgressSteps] = useState([]); // New state for progress
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  // const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
