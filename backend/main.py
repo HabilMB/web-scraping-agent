@@ -53,7 +53,13 @@ async def scrape_and_summarize_endpoint(query: ScrapeQuery):
     async def generate_events():
         agent = LLMAgent()
         async for progress_update in agent.run_full_scraping_workflow(user_query=query.user_query):
+            # tiny pause to avoid overwhelming client with too many events
+            await asyncio.sleep(0.01)
             yield json.dumps(progress_update) + "\n"
-    return StreamingResponse(generate_events(), media_type="application/x-ndjson")
+    return StreamingResponse(
+        generate_events(),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
+    )
 
 # Add other endpoints as needed, e.g., for specific tools or functionalities 

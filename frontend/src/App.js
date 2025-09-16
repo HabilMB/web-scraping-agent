@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import './App.css';
 
 function App() {
@@ -47,25 +47,23 @@ function App() {
         const lines = result.split('\n');
         result = lines.pop(); // Keep the last, possibly incomplete, line
 
+        const newSteps = [];
         for (const line of lines) {
           if (line.trim() === '') continue;
           try {
             const data = JSON.parse(line);
-            setProgressSteps((prevSteps) => {
-              const newSteps = [...prevSteps, data];
-              // Update final summary/extracted data only when status is complete
-              if (data.status === 'complete') {
-                setSummary(data.final_result);
-              } else if (data.status === 'error') {
-                setError(data.final_result || data.step || 'An error occurred during a step.');
-              }
-              return newSteps;
-            });
+            newSteps.push(data);
 
           } catch (jsonError) {
             console.error('Error parsing JSON from stream:', jsonError, 'Line:', line);
             setError('Error processing stream data.');
           }
+        }
+        if (newSteps.length) {
+          setProgressSteps((prev) => [...prev, ...newSteps]);
+          const last = newSteps[newSteps.length - 1];
+          if (last.status === 'complete') setSummary(last.final_result);
+          else if (last.status === 'error') setError(last.final_result || last.step || 'An error occurred during a step.');
         }
       }
 

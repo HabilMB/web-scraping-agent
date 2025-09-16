@@ -12,6 +12,7 @@ import json
 import re
 import ast # Import the ast module
 import asyncio # Import asyncio for async operations
+import hashlib
 
 from tools.web_tools import fetch_webpage, fetch_and_parse_webpage
 from prompts.scraping_prompts import SCRAPING_ANALYSIS_PROMPT
@@ -25,6 +26,11 @@ class LLMAgent:
             model_name="moonshotai/kimi-k2-instruct",
         )
         self.search_tool = TavilySearchResults()
+        # Simple in-memory cache for analysis results keyed by (query, url)
+        self._analysis_cache: dict[str, dict] = {}
+
+    def _get_cache_key(self, query: str, url: str) -> str:
+        return hashlib.md5(f"{query}:{url}".encode()).hexdigest()
 
     def run_search_agent(self, query: str):
         # Define a prompt for the LLM to generate a search query
@@ -78,23 +84,34 @@ class LLMAgent:
         return self.llm.invoke(prompt_text)
 
     def analyze_webpage_and_suggest_selectors(self, url: str, user_query: str):
+        cache_key = self._get_cache_key(user_query, url)
+        if cache_key in self._analysis_cache:
+            print(f"Cache hit for {url}")
+            return self._analysis_cache[cache_key]
+
         print(f"Fetching and parsing webpage: {url}")
         content = fetch_and_parse_webpage.func(url)
 
         if "Error fetching webpage" in content:
             return {"relevance": "Error", "message": content}
 
+        # Truncate very large content to reduce LLM latency
+        if isinstance(content, str) and len(content) > 8000:
+            content = content[:8000] + "... [truncated]"
+
         print("Analyzing content with LLM...")
         analysis_chain = (SCRAPING_ANALYSIS_PROMPT | self.llm | JsonOutputParser())
         
         try:
             analysis_result = analysis_chain.invoke({"query": user_query, "content": content})
+            # Cache successful analysis
+            self._analysis_cache[cache_key] = analysis_result
             return analysis_result # This now directly returns extracted data or relevance status
         except Exception as e:
             print(f"An error occurred during webpage analysis: {e}")
             return {"relevance": "Error", "message": f"LLM analysis failed: {e}"}
 
-    async def run_full_scraping_workflow(self, user_query: str):
+    async def run_full_scraping_workflow(self, user_query: str, max_concurrency: int = 3, max_relevant_pages: int = 3):
         print("\n--- Starting Full Scraping Workflow ---")
         print(f"User Query: {user_query}")
 
@@ -112,18 +129,28 @@ class LLMAgent:
 
         all_extracted_data = []
 
-        # Step 2: Analyze Webpages & Generate Scraping Parameters
+        # Step 2: Analyze Webpages & Generate Scraping Parameters (concurrently)
         yield {"step": f"Analyzing {len(candidate_urls)} candidate webpages...", "status": "in_progress"}
-        for url in candidate_urls:
-            print(f"\nStep 2: Analyzing webpage: {url}")
-            analysis_feedback = await asyncio.to_thread(self.analyze_webpage_and_suggest_selectors, url, user_query)
-            
+
+        semaphore = asyncio.Semaphore(max_concurrency)
+
+        async def analyze_single_url(url: str):
+            async with semaphore:
+                return url, await asyncio.to_thread(self.analyze_webpage_and_suggest_selectors, url, user_query)
+
+        tasks = [analyze_single_url(url) for url in candidate_urls]
+        relevant_pages_found = 0
+
+        for coro in asyncio.as_completed(tasks):
+            url, analysis_feedback = await coro
+            print(f"\nStep 2: Analyzed webpage: {url}")
+
             if analysis_feedback.get("relevance") == "Relevant":
                 print(f"Page {url} is relevant. Extracting data...")
                 extracted_item_data = analysis_feedback.get("extracted_data")
-                
                 if extracted_item_data:
                     all_extracted_data.append({"url": url, "data": extracted_item_data})
+                    relevant_pages_found += 1
                     print(f"Successfully extracted data from {url}:")
                     print(json.dumps(extracted_item_data, indent=2))
                 else:
@@ -131,7 +158,12 @@ class LLMAgent:
             elif analysis_feedback.get("relevance") == "Not Relevant":
                 print(f"Page {url} is not relevant to the query. Skipping.")
             else:
-                print(f"Error or unknown relevance for {url}: {analysis_feedback.get("message", "Unknown error")}")
+                print(f"Error or unknown relevance for {url}: {analysis_feedback.get('message', 'Unknown error')}")
+
+            # Early stop once enough relevant pages have been gathered
+            if relevant_pages_found >= max_relevant_pages:
+                print(f"Reached max relevant pages ({max_relevant_pages}). Stopping further analysis early.")
+                break
 
         if all_extracted_data:
             yield {"step": f"Finished analyzing webpages. Extracted data from {len(all_extracted_data)} relevant pages.", "status": "info"}
