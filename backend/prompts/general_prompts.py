@@ -1,4 +1,4 @@
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 FINAL_SUMMARY_PROMPT = PromptTemplate.from_template(
     """You are an AI assistant tasked with summarizing scraped data and answering a user's query.

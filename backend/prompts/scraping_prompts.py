@@ -1,4 +1,4 @@
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 SCRAPING_ANALYSIS_PROMPT = PromptTemplate.from_template(
     """You are an expert web scraping assistant. Your task is to analyze the provided web page content 
