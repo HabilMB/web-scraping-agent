@@ -23,7 +23,7 @@ class LLMAgent:
         # self.llm = Ollama(model=os.getenv("OLLAMA_MODEL", "gemma3:4b"), base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"))
         self.llm = ChatGroq(
             temperature=0,
-            model_name="moonshotai/kimi-k2-instruct",
+            model_name="openai/gpt-oss-20b",
         )
         self.search_tool = TavilySearchResults()
         # Simple in-memory cache for analysis results keyed by (query, url)
